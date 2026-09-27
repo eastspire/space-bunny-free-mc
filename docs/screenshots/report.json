@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8137/",
+  "when": "2026-09-27T10:35:20.667Z",
+  "pageErrors": [],
+  "consoleErrors": [],
+  "perf": {
+    "fps": 59.999999999999986,
+    "chunks": 193,
+    "meshes": 277,
+    "calls": 140,
+    "tris": 181420,
+    "pos": [
+      1128,
+      60,
+      3672
+    ],
+    "biome": "Plains"
+  },
+  "shots": [
+    "01-intro-overlay.png",
+    "02-spawn-panorama.png",
+    "03-first-person.png",
+    "04-after-walk.png",
+    "05-blocks-placed.png",
+    "06-blocks-broken.png",
+    "06a-mining-progress.png",
+    "07-hotbar.png",
+    "08-biome-mountains.png",
+    "09-biome-woodland.png",
+    "10-biome-desert.png",
+    "11-biome-beach.png",
+    "12-noon.png",
+    "13-sunset.png",
+    "14-night.png",
+    "15-aerial.png",
+    "16-water.png"
+  ]
+}

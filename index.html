@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>VoxelCraft &middot; space-bunny-free</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="water-overlay"></div>
+
+<div id="hud">
+  <div id="crosshair"></div>
+  <div id="debug"></div>
+  <div id="toast"></div>
+  <div id="hotbar"></div>
+  <div id="keys">
+    <span><b>WASD</b> move</span><span><b>Space</b> jump</span><span><b>Shift</b> sprint</span>
+    <span><b>LMB</b> mine</span><span><b>RMB</b> place</span><span><b>1-9/0/-/=</b> blocks</span>
+    <span><b>F</b> fly</span><span><b>F3</b> debug</span>
+  </div>
+</div>
+
+<div id="loading">
+  <div class="panel">
+    <h1>VoxelCraft</h1>
+    <p class="sub">procedural voxel world &middot; three.js</p>
+    <div class="track"><div id="bar"></div></div>
+    <p id="progress-text">Generating terrain — 0%</p>
+  </div>
+</div>
+
+<div id="overlay">
+  <div class="panel">
+    <h1>VoxelCraft</h1>
+    <p class="sub">an infinite procedural voxel sandbox &middot; built by <b>space-bunny-free</b></p>
+    <ul class="hints">
+      <li><b>WASD</b> move &middot; <b>Space</b> jump &middot; <b>Shift</b> sprint &middot; <b>F</b> fly</li>
+      <li><b>Left click</b> mine a block &middot; <b>Right click</b> place &middot; <b>Wheel / 1-0</b> pick block</li>
+      <li>Seeded infinite terrain, caves, ores, biomes, trees, water &amp; a full day/night cycle</li>
+    </ul>
+    <button id="start">Click to play</button>
+  </div>
+</div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

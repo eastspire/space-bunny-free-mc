@@ -1,0 +1,31 @@
+{
+  "name": "minecraft-web-space-bunny-free",
+  "version": "1.0.0",
+  "description": "VoxelCraft - a browser Minecraft-like voxel sandbox (three.js), built by space-bunny-free",
+  "main": "index.js",
+  "scripts": {
+    "serve": "python3 -m http.server 8137 --bind 127.0.0.1",
+    "check": "node tools/check-geom.mjs",
+    "terrain": "node tools/check-terrain.mjs",
+    "spots": "node tools/find-spots.mjs",
+    "verify": "node tools/verify.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.63.0"
+  },
+  "files": [
+    "index.html",
+    "css",
+    "src",
+    "vendor",
+    "docs",
+    "tools"
+  ]
+}
