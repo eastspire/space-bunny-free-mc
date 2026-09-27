@@ -1,9 +1,14 @@
 // Headless verification harness: boots the game, waits for the world to stream
-// in, drives it through several scenarios and writes screenshots to shots/.
+// in, drives it through a series of scenarios and writes a screenshot for each
+// one, plus report.json with the run record.
 //
-//   node tools/verify.mjs [--headful] [--url http://127.0.0.1:8137/]
+//   node tools/verify.mjs [--headful] [--url <base>] [--out <dir>]
 //
-// Screenshots land in docs/screenshots/ and are committed as-is.
+//   --url   base URL of an already running server (default 127.0.0.1:8137)
+//   --out   screenshot directory (default docs/screenshots, committed as-is;
+//           CI passes --out screenshots to keep the artifact separate)
+//
+// Exits non-zero if any page error or console error/warning was recorded.
 
 import { chromium } from 'playwright-core';
 import { mkdirSync, writeFileSync, readdirSync } from 'node:fs';
@@ -12,8 +17,6 @@ import path from 'node:path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const SHOTS = path.join(ROOT, 'docs', 'screenshots');
-mkdirSync(SHOTS, { recursive: true });
 
 const argv = process.argv.slice(2);
 const headful = argv.includes('--headful');
@@ -21,6 +24,10 @@ const base = (() => {
   const i = argv.indexOf('--url');
   return i >= 0 ? argv[i + 1] : 'http://127.0.0.1:8137/';
 })();
+
+const outIdx = argv.indexOf('--out');
+const SHOTS = path.resolve(ROOT, outIdx >= 0 ? argv[outIdx + 1] : 'docs/screenshots');
+mkdirSync(SHOTS, { recursive: true });
 
 const log = [];
 const note = (...a) => { const s = a.join(' '); log.push(s); console.log(s); };
@@ -50,7 +57,7 @@ page.on('pageerror', (e) => { pageErrors.push(String(e)); note(`  PAGEERROR: ${e
 const shot = async (name) => {
   const file = path.join(SHOTS, `${name}.png`);
   await page.screenshot({ path: file });
-  note(`  shot -> docs/screenshots/${name}.png`);
+  note(`  shot -> ${path.relative(ROOT, file)}`);
   return file;
 };
 

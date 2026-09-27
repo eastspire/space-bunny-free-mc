@@ -1,0 +1,58 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  geometry:
+    name: geometry assertions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm ci
+      - name: Assert triangle shape, winding and chunk seams
+        run: node tools/check-geom.mjs
+      - name: Sample terrain, caves and biomes
+        run: node tools/check-terrain.mjs
+      - name: Assert the game still plays without pointer lock
+        run: node tools/check-fallback.mjs
+
+  runtime:
+    name: headless runtime + screenshots
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm ci
+      - name: Serve the game
+        run: |
+          python3 -m http.server 8137 --bind 127.0.0.1 &
+          for _ in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8137/index.html >/dev/null && break
+            sleep 1
+          done
+      - name: Drive the game in Chrome and capture screenshots
+        # Chrome is preinstalled on the ubuntu runner images; playwright-core
+        # reuses it instead of downloading its own build.
+        run: node tools/verify.mjs --url http://127.0.0.1:8137/ --out screenshots
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: screenshots/
+          retention-days: 7
