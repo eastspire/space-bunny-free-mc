@@ -10,7 +10,22 @@ const browser = await chromium.launch({
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
-page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`[${m.type()}] ${m.text()}`); });
+// Headless GPU stacks log driver chatter, and tearing the context down at the
+// end of the run prints a CONTEXT_LOST warning. Neither says anything about the
+// app, so only real errors are collected.
+const BENIGN_CONSOLE = [
+  /GL Driver Message/i,
+  /GPU stall due to ReadPixels/i,
+  /CONTEXT_LOST_WEBGL/i,
+  /SwiftShader/i,
+  /software WebGL/i,
+  /GroupMarkerNotSet/i,
+];
+page.on('console', (m) => {
+  if (m.type() !== 'error' && m.type() !== 'warning') return;
+  if (BENIGN_CONSOLE.some((re) => re.test(m.text()))) return;
+  errors.push(`[${m.type()}] ${m.text()}`);
+});
 
 // Deny pointer lock the way an embedded webview does: throw WrongDocumentError.
 await page.addInitScript(() => {
