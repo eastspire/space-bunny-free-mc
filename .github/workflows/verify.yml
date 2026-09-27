@@ -25,8 +25,6 @@ jobs:
         run: node tools/check-geom.mjs
       - name: Sample terrain, caves and biomes
         run: node tools/check-terrain.mjs
-      - name: Assert the game still plays without pointer lock
-        run: node tools/check-fallback.mjs
 
   runtime:
     name: headless runtime + screenshots
@@ -45,6 +43,8 @@ jobs:
             curl -sf http://127.0.0.1:8137/index.html >/dev/null && break
             sleep 1
           done
+      - name: Assert the game still plays without pointer lock
+        run: node tools/check-fallback.mjs
       - name: Drive the game in Chrome and capture screenshots
         # Chrome is preinstalled on the ubuntu runner images; playwright-core
         # reuses it instead of downloading its own build.

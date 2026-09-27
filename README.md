@@ -5,9 +5,20 @@ world that runs in the browser on WebGL2 via three.js — no build step, no bund
 no external assets. Every block texture is painted pixel-by-pixel into a WebGL2
 texture array at boot.
 
+**Play it online:** <https://eastspire.github.io/space-bunny-free-mc/>
+&nbsp;•&nbsp; **Repository:** <https://github.com/eastspire/space-bunny-free-mc>
+
 ![Spawn panorama](docs/screenshots/02-spawn-panorama.png)
 
 ---
+
+## Deployment
+
+The app is a plain static site with no build step, so it is published to GitHub
+Pages straight from `main` by [`.github/workflows/pages.yml`](.github/workflows/pages.yml).
+Every asset path in `index.html` is relative, which is what makes the project
+sub-path (`/space-bunny-free-mc/`) work. To run it elsewhere, copy
+`index.html`, `favicon.svg`, `css/`, `src/` and `vendor/` to any static host.
 
 ## Quick start
 

@@ -45,11 +45,28 @@ const browser = await chromium.launch({
 });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
 
+// Headless GPU stacks (SwiftShader, ANGLE) emit driver chatter that says
+// nothing about the app, so those are recorded separately instead of failing
+// the run. Real page errors and app-level console errors always fail.
+const BENIGN_CONSOLE = [
+  /GL Driver Message/i,
+  /GPU stall due to ReadPixels/i,
+  /SwiftShader/i,
+  /software WebGL/i,
+  /GroupMarkerNotSet/i,
+  /Fontconfig/i,
+];
+const isBenign = (text) => BENIGN_CONSOLE.some((re) => re.test(text));
+
 const consoleErrors = [];
+const ignoredConsole = [];
 const pageErrors = [];
 page.on('console', (m) => {
   const t = m.type();
-  if (t === 'error' || t === 'warning') consoleErrors.push(`[${t}] ${m.text()}`);
+  if (t === 'error' || t === 'warning') {
+    if (isBenign(m.text())) ignoredConsole.push(`[${t}] ${m.text()}`);
+    else consoleErrors.push(`[${t}] ${m.text()}`);
+  }
   note(`  console.${t}: ${m.text()}`);
 });
 page.on('pageerror', (e) => { pageErrors.push(String(e)); note(`  PAGEERROR: ${e}`); });
@@ -330,6 +347,7 @@ const report = {
   when: new Date().toISOString(),
   pageErrors,
   consoleErrors: [...new Set(consoleErrors)],
+  ignoredConsole: [...new Set(ignoredConsole)],
   perf,
   shots: readdirSync(SHOTS).filter((f) => f.endsWith('.png')),
 };
@@ -338,6 +356,7 @@ writeFileSync(path.join(SHOTS, 'report.json'), JSON.stringify(report, null, 2));
 note('== summary ==');
 note(`  page errors: ${pageErrors.length}`);
 note(`  console warn/err: ${report.consoleErrors.length}`);
+if (ignoredConsole.length) note(`  ignored benign driver messages: ${new Set(ignoredConsole).size}`);
 if (pageErrors.length) note('  ' + pageErrors.join('\n  '));
 if (report.consoleErrors.length) note('  ' + report.consoleErrors.slice(0, 20).join('\n  '));
 
