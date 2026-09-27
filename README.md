@@ -5,7 +5,7 @@ world that runs in the browser on WebGL2 via three.js — no build step, no bund
 no external assets. Every block texture is painted pixel-by-pixel into a WebGL2
 texture array at boot.
 
-![Spawn panorama](docs/screenshots/02-spawn-panorama.jpg)
+![Spawn panorama](docs/screenshots/02-spawn-panorama.png)
 
 ---
 
@@ -37,6 +37,10 @@ Click **Click to play** to capture the mouse, then walk around.
 | `F3` | toggle the debug readout |
 | `F1` | hide the HUD |
 
+Looking around uses the mouse under pointer lock. If the browser refuses
+pointer lock, the game says so and switches to **drag with the left mouse
+button** to look — every other control is unchanged.
+
 ## Screenshots
 
 All images below are captured from the running game by `tools/verify.mjs` and
@@ -47,39 +51,39 @@ record is [`docs/screenshots/report.json`](docs/screenshots/report.json).
 
 | | |
 | --- | --- |
-| ![First person](docs/screenshots/03-first-person.jpg) | ![After walking](docs/screenshots/04-after-walk.jpg) |
+| ![First person](docs/screenshots/03-first-person.png) | ![After walking](docs/screenshots/04-after-walk.png) |
 | Standing on the shoreline, HUD + hotbar visible | After holding `W` for a second and a half |
-| ![Intro](docs/screenshots/01-intro-overlay.jpg) | ![Hotbar](docs/screenshots/07-hotbar.jpg) |
+| ![Intro](docs/screenshots/01-intro-overlay.png) | ![Hotbar](docs/screenshots/07-hotbar.png) |
 | Boot screen with the intro overlay | Hotbar selection (isometric block icons) |
 
 ### Building and mining
 
 | | |
 | --- | --- |
-| ![Built hut](docs/screenshots/05-blocks-placed.jpg) | ![Mining](docs/screenshots/06a-mining-progress.jpg) |
+| ![Built hut](docs/screenshots/05-blocks-placed.png) | ![Mining](docs/screenshots/06a-mining-progress.png) |
 | 226-block brick / plank / glass hut placed one `setBlock` at a time | Mid-mining: the break-progress overlay on the target |
-| ![Mined hole](docs/screenshots/06-blocks-broken.jpg) | |
+| ![Mined hole](docs/screenshots/06-blocks-broken.png) | |
 | The hole left in a cobblestone wall after a real mouse press | |
 
 ### Biomes
 
 | | |
 | --- | --- |
-| ![Mountains](docs/screenshots/08-biome-mountains.jpg) | ![Woodland](docs/screenshots/09-biome-woodland.jpg) |
+| ![Mountains](docs/screenshots/08-biome-mountains.png) | ![Woodland](docs/screenshots/09-biome-woodland.png) |
 | Mountains: stone, cobble and snow caps | Woodland at ground level |
-| ![Desert](docs/screenshots/10-biome-desert.jpg) | ![Beach](docs/screenshots/11-biome-beach.jpg) |
+| ![Desert](docs/screenshots/10-biome-desert.png) | ![Beach](docs/screenshots/11-biome-beach.png) |
 | Desert dunes and shallow oases | Beach biome and open ocean |
 
 ### Day cycle, aerial view, underwater
 
 | | |
 | --- | --- |
-| ![Noon](docs/screenshots/12-noon.jpg) | ![Sunset](docs/screenshots/13-sunset.jpg) |
+| ![Noon](docs/screenshots/12-noon.png) | ![Sunset](docs/screenshots/13-sunset.png) |
 | Noon (`?t=0.5`) | Sunset (`?t=0.755`) |
-| ![Night](docs/screenshots/14-night.jpg) | ![Aerial](docs/screenshots/15-aerial.jpg) |
+| ![Night](docs/screenshots/14-night.png) | ![Aerial](docs/screenshots/15-aerial.png) |
 | Night with stars and a moonlit sea | Aerial overview from 74 blocks up |
-| ![Underwater](docs/screenshots/16-water.jpg) | |
-| Submerged: dense blue fog and a screen tint | |
+| ![Underwater](docs/screenshots/16-water.png) | ![No pointer lock](docs/screenshots/17-fallback-nopointerlock.png) |
+| Submerged: dense blue fog and a screen tint | Fully playable with pointer lock refused — a brick placed and the block behind it mined |
 
 ## What's in the world
 
@@ -135,8 +139,11 @@ docs/screenshots/     committed output of tools/verify.mjs
 - **Tree canopies** may spill into neighbouring chunks. Writes to a chunk that is
   not generated yet are queued and replayed once that chunk finishes, so
   generation stays independent and order-free.
-- **Spawning** uses the terrain height (not the block-column top) and skips
-  columns under a canopy, so you never start buried in a tree.
+- **Spawning** scores nearby columns for a dry, tree-free clearing and then faces
+  the most open horizon, so you never start buried in a tree or facing a wall.
+- **Pointer lock is optional.** The game asks for it, but if the browser refuses
+  (embedded webviews, iframes, a dismissed prompt) it falls back to drag-to-look
+  and clears the overlay anyway, instead of stranding the player on the title.
 
 ### URL parameters
 
@@ -163,6 +170,7 @@ Everything below runs headless against the real page in Chrome (via
 npm run check     # node tools/check-geom.mjs   geometry assertions
 npm run verify    # node tools/verify.mjs      drives the game, rewrites docs/screenshots/
 node tools/check-terrain.mjs   # noise ranges, heightmap, cave ratios, biomes
+node tools/check-fallback.mjs   # plays the game with pointer lock denied
 node tools/find-spots.mjs      # finds photogenic coordinates per biome
 ```
 
@@ -181,6 +189,13 @@ selection, four biomes, noon/sunset/night, an aerial overview, and an underwater
 view — capturing a screenshot at each step plus a 90-frame FPS probe. It exits
 non-zero on any page error or console error/warning. Re-running it overwrites
 `docs/screenshots/` and `docs/screenshots/report.json`.
+
+`tools/check-fallback.mjs` stubs `requestPointerLock` to reject the way an
+embedded webview does, then asserts the game is still fully playable: the
+overlay clears, `W` moves the player, dragging changes the look direction, and
+a block can be placed and mined. It is the regression test for the fallback
+path — the bug it was written for left the player stuck on the title screen
+with no way in.
 
 Latest committed run: **0 page errors, 0 console errors/warnings, 60 fps**
 (headless SwiftShader), 193 chunks resident, ~180k triangles, 87–150 draw calls.

@@ -444,23 +444,28 @@ addEventListener('wheel', (e) => {
   setHandBlock(HOTBAR_BLOCKS[hud.selected]);
 }, { passive: true });
 
-function requestLock() {
-  try {
-    const p = canvas.requestPointerLock({ unadjustedMovement: true });
-    if (p && p.catch) p.catch(() => {
-      try { canvas.requestPointerLock(); } catch { pointerLockUnavailable = true; }
-    });
-  } catch {
-    pointerLockUnavailable = true;
-  }
-}
-document.addEventListener('pointerlockerror', () => {
+function lockFailed() {
   // The browser refused the lock: switch to the drag-to-look fallback instead
   // of leaving the player stuck on the overlay.
   pointerLockUnavailable = true;
-  if (started) overlay.classList.add('hidden');
-  toast('Pointer lock unavailable — drag to look');
-});
+  if (started) {
+    overlay.classList.add('hidden');
+    toast('Pointer lock unavailable — drag to look');
+  }
+}
+function requestLock() {
+  const retry = () => {
+    try {
+      const p2 = canvas.requestPointerLock();
+      if (p2 && p2.catch) p2.catch(lockFailed);
+    } catch { lockFailed(); }
+  };
+  try {
+    const p = canvas.requestPointerLock({ unadjustedMovement: true });
+    if (p && p.catch) p.catch(retry);
+  } catch { retry(); }
+}
+document.addEventListener('pointerlockerror', lockFailed);
 document.addEventListener('pointerlockchange', () => {
   pointerLocked = document.pointerLockElement === canvas;
   if (pointerLocked) { pointerLockUnavailable = false; overlay.classList.add('hidden'); }
